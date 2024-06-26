@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Finder for a given condition_id</title>
+</head>
+<body>
+    <div class=container>
+    <h1>Patient Finder for a given condition_id</h1>
+
+    <form method="post">
+        <label for="condition_id">Enter a condition ID:</label>
+        <input type="text" name="condition_id" id="condition_id">
+        <input type="submit" value="Search">
+    </form>
+   
+    {% if result %}
+    <h3>Total Patients: {{ result['total_patients'] }}</h3>
+    <h3>Results:</h3>
+    <ul>
+        {% for patient in result['unique_patients'] %}
+            <li>
+                <p>Patient ID: {{ patient[0] }}</p>
+                <p>First Name: {{ patient[1] }}</p>
+                <p>Last Name: {{ patient[2] }}</p>
+                <p>Gender: {{ patient[3] }}</p>
+                <p>Birth Date: {{ patient[4] }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
+    </div>
+</body>
+</html>
+
+
+<style>
+    .container {
+        display: grid;
+        place-items: center;
+    }
+</style>

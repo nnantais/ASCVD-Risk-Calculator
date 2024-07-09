@@ -2,43 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ASCVD Risk Calculator</title>
+    <title>Enter Patient ID</title>
 </head>
 <body>
     <div class="container">
-        <h1>ASCVD Risk Calculator</h1>
+        <h1>Enter Patient ID</h1>
         <form method="post">
             <label for="patient_id">Patient ID:</label>
-            <input type="text" name="patient_id" id="patient_id"><br>
+            <input type="text" name="patient_id" id="patient_id" required><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>
 
-            <label for="age">Current Age:</label>
-            <input type="number" name="age" id="age" value="{{ patient_data.get('age', '') }}" required><br>
-
-            <label for="gender">Sex:</label>
-            <select name="gender" id="gender" required>
-                <option value="male" {% if patient_data.get('gender') == 'male' %}selected{% endif %}>Male</option>
-                <option value="female" {% if patient_data.get('gender') == 'female' %}selected{% endif %}>Female</option>
-            </select><br>
-
-            <label for="race">Race:</label>
-            <select name="race" id="race" required>
-                <option value="white" {% if patient_data.get('race') == 'white' %}selected{% endif %}>White</option>
-                <option value="black" {% if patient_data.get('race') == 'black' %}selected{% endif %}>Black</option>
-                <option value="asian" {% if patient_data.get('race') == 'asian' %}selected{% endif %}>Asian</option>
-                <option value="other" {% if patient_data.get('race') == 'other' %}selected{% endif %}>Other</option>
-            </select><br>
-
-            <label for="systolic_bp">Systolic Blood Pressure (mm Hg):</label>
-            <input type="number" name="systolic_bp" id="systolic_bp" value="{{ patient_data.get('systolic_bp', '') }}" required><br>
-
-            <label for="diastolic_bp">Diastolic Blood Pressure (mm Hg):</label>
-            <input type="number" name="diastolic_bp" id="diastolic_bp" value="{{ patient_data.get('diastolic_bp', '') }}" required><br>
-
-            <label for="total_cholesterol">Total Cholesterol (mg/dL):</label>
-            <input type="number" name="total_cholesterol" id="total_cholesterol" value="{{ patient_data.get('total_cholesterol', '') }}" required><br>
-
-            <label for="hdl_cholesterol">HDL Cholesterol (mg/dL):</label>
-            <input type="number" name="hdl_cholesterol" id="hdl_cholesterol" value="{{ patient_data.get('hdl_cholesterol', '') }}" required><br>
-
-            <label for="ldl_cholesterol">LDL Cholesterol (mg/dL):</label>
-            <input type="number" name="ldl_cholesterol"
+<style>
+    .container {
+        display: grid;
+        place-items: center;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+    }
+</style>

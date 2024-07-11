@@ -35,9 +35,18 @@ def extract_patient_data(patient, observations):
         resource = entry['resource']
         code = resource['code']['coding'][0]['code']
         
-        if 'valueQuantity' in resource:
-            value = resource['valueQuantity']['value']
-            
+        print(f"Processing code: {code}")
+        
+        value = None
+        if 'valueString' in resource:
+            try:
+                value = float(resource['valueString'])
+                print(f"Found valueString: {value}")
+            except ValueError:
+                print(f"Invalid valueString: {resource['valueString']}")
+                continue  # skip if the valueString is not a valid float
+        
+        if value is not None:
             if code == '2093-3':  # Total Cholesterol
                 data['total_cholesterol'] = value
             elif code == '2085-9':  # HDL Cholesterol
@@ -49,6 +58,7 @@ def extract_patient_data(patient, observations):
             elif code == '8462-4':  # Diastolic Blood Pressure
                 data['diastolic_bp'] = value
 
+    print(f"Extracted data: {data}")
     return data
 
 @app.route('/', methods=['GET', 'POST'])

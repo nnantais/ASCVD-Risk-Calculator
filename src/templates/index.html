@@ -2,27 +2,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Enter Patient ID</title>
+    <title>ASCVD Risk Calculator</title>
+    <script>
+        function clearPreviousResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .form-container, .results-container, .input-fields-container {
+            width: 100%;
+            max-width: 600px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .form-group .options {
+            display: flex;
+            gap: 10px;
+        }
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .results-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .results-container input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Enter Patient ID</h1>
-        <form method="post">
-            <label for="patient_id">Patient ID:</label>
-            <input type="text" name="patient_id" id="patient_id" required><br>
-            <input type="submit" value="Submit">
+        <h1>ASCVD Risk Calculator</h1>
+
+        <form method="post" onsubmit="clearPreviousResults()" class="form-container">
+            <div class="form-group">
+                <label for="patient_id">Enter a Patient ID:</label>
+                <input type="text" name="patient_id" id="patient_id" required>
+            </div>
+            <input type="submit" value="Search">
         </form>
+
+        <div id="results" class="results-container">
+            <form method="post" class="form-container">
+                {% if demographics %}
+                    <label>Age:</label>
+                    <input type="text" name="age" value="{{ demographics.age if demographics.age != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.age == 'Not Found' else '' }}" required>
+                    <label>Sex:</label>
+                    <input type="text" name="sex" value="{{ demographics.sex if demographics.sex != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.sex == 'Not Found' else '' }}" required>
+                    <label>Race:</label>
+                    <input type="text" name="race" value="{{ demographics.race if demographics.race != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.race == 'Not Found' else '' }}" required>
+                {% endif %}
+
+                {% if observations %}
+                    {% for obs_name, obs_value in observations.items() %}
+                        <label>{{ obs_name }}:</label>
+                        <input type="text" name="{{ obs_name | replace(' ', '_') | lower }}" value="{{ obs_value if obs_value != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if obs_value == 'Not Found' else '' }}" required>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="form-group">
+                    <label>History of Diabetes?</label>
+                    <div class="options">
+                        <label><input type="radio" name="diabetes" value="yes" required> Yes</label>
+                        <label><input type="radio" name="diabetes" value="no" required> No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Smoker?</label>
+                    <div class="options">
+                        <label><input type="radio" name="smoker" value="yes" required> Yes</label>
+                        <label><input type="radio" name="smoker" value="no" required> No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>On hypertension treatment?</label>
+                    <div class="options">
+                        <label><input type="radio" name="hypertension" value="yes" required> Yes</label>
+                        <label><input type="radio" name="hypertension" value="no" required> No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>On a statin?</label>
+                    <div class="options">
+                        <label><input type="radio" name="statin" value="yes" required> Yes</label>
+                        <label><input type="radio" name="statin" value="no" required> No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>On Aspirin Therapy?</label>
+                    <div class="options">
+                        <label><input type="radio" name="aspirin" value="yes" required> Yes</label>
+                        <label><input type="radio" name="aspirin" value="no" required> No</label>
+                    </div>
+                </div>
+
+                <input type="submit" value="Submit Additional Info">
+            </form>
+        </div>
     </div>
 </body>
 </html>
-
-<style>
-    .container {
-        display: grid;
-        place-items: center;
-    }
-    label {
-        display: block;
-        margin-top: 10px;
-    }
-</style>

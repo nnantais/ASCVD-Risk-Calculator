@@ -69,30 +69,67 @@ def get_patient_observations(patient_id, credentials):
             observations[obs_name] = 'Not Found'
     return observations, demographics
 
+def calculate_ascvd_risk(age, sex, race, total_cholesterol, hdl_cholesterol, systolic_bp, on_hypertension_treatment, diabetes, smoker):
+    # Simplified ASCVD risk calculation
+    # Note: This is a placeholder. Use a proper ASCVD risk calculator for accurate results.
+    risk_score = 0
+    if sex == 'male':
+        risk_score += 1
+    if race == 'African American':
+        risk_score += 1
+    risk_score += age / 10
+    risk_score += total_cholesterol / 50
+    risk_score -= hdl_cholesterol / 50
+    risk_score += systolic_bp / 20
+    if on_hypertension_treatment == 'yes':
+        risk_score += 1
+    if diabetes == 'yes':
+        risk_score += 1
+    if smoker == 'yes':
+        risk_score += 1
+    return round(risk_score, 2)
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     observations = None
     demographics = None
-    additional_fields = {}
+    ascvd_risk = None
 
-    if request.method == 'POST':
-        patient_id = request.form['patient_id']
-        additional_fields['diabetes'] = request.form.get('diabetes')
-        additional_fields['smoker'] = request.form.get('smoker')
-        additional_fields['hypertension'] = request.form.get('hypertension')
-        additional_fields['statin'] = request.form.get('statin')
-        additional_fields['aspirin'] = request.form.get('aspirin')
-        credentials = (username, password)
-        observations, demographics = get_patient_observations(patient_id, credentials)
-        # Capture additional inputs from the user
-        demographics['age'] = request.form.get('age') or demographics['age']
-        demographics['sex'] = request.form.get('sex') or demographics['sex']
-        demographics['race'] = request.form.get('race') or demographics['race']
-        for obs_name in observation_codes.keys():
-            form_name = obs_name.replace(' ', '_').lower()
-            observations[obs_name] = request.form.get(form_name) or observations[obs_name]
+    return render_template('index.html', observations=observations, demographics=demographics, ascvd_risk=ascvd_risk)
 
-    return render_template('index.html', observations=observations, demographics=demographics, additional_fields=additional_fields)
+@app.route('/fetch_patient_data', methods=['POST'])
+def fetch_patient_data():
+    patient_id = request.form['patient_id']
+    credentials = (username, password)
+    observations, demographics = get_patient_observations(patient_id, credentials)
+    return render_template('index.html', observations=observations, demographics=demographics, patient_id=patient_id)
+
+@app.route('/calculate_risk', methods=['POST'])
+def calculate_risk():
+    patient_id = request.form.get('patient_id')
+    age = int(request.form['age'])
+    sex = request.form['sex']
+    race = request.form['race']
+    total_cholesterol = float(request.form['total_cholesterol'])
+    hdl_cholesterol = float(request.form['hdl_cholesterol'])
+    systolic_bp = float(request.form['systolic_blood_pressure'])
+    diabetes = request.form['diabetes']
+    smoker = request.form['smoker']
+    hypertension = request.form['hypertension']
+
+    ascvd_risk = calculate_ascvd_risk(age, sex, race, total_cholesterol, hdl_cholesterol, systolic_bp, hypertension, diabetes, smoker)
+
+    # Maintain the form values for observations and demographics
+    demographics = {'age': age, 'sex': sex, 'race': race}
+    observations = {
+        'Total Cholesterol': total_cholesterol,
+        'HDL Cholesterol': hdl_cholesterol,
+        'Systolic Blood Pressure': systolic_bp,
+        'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found',
+        'LDL Cholesterol': request.form['ldl_cholesterol'] if 'ldl_cholesterol' in request.form else 'Not Found'
+    }
+
+    return render_template('index.html', ascvd_risk=ascvd_risk, demographics=demographics, observations=observations, patient_id=patient_id)
 
 if __name__ == '__main__':
     port_str = os.environ['FHIR_PORT']

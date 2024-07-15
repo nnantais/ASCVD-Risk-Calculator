@@ -57,35 +57,49 @@
             margin-bottom: 10px;
             box-sizing: border-box;
         }
+        .ascvd-risk {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ASCVD Risk Calculator</h1>
 
-        <form method="post" onsubmit="clearPreviousResults()" class="form-container">
+        <!-- Form for fetching patient data using patient ID -->
+        <form method="post" action="/fetch_patient_data" onsubmit="clearPreviousResults()" class="form-container">
             <div class="form-group">
                 <label for="patient_id">Enter a Patient ID:</label>
                 <input type="text" name="patient_id" id="patient_id" required>
             </div>
-            <input type="submit" value="Search">
+            <input type="submit" value="Fetch Patient Data">
         </form>
 
         <div id="results" class="results-container">
-            <form method="post" class="form-container">
+            <form method="post" action="/calculate_risk" class="form-container">
                 {% if demographics %}
-                    <label>Age:</label>
-                    <input type="text" name="age" value="{{ demographics.age if demographics.age != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.age == 'Not Found' else '' }}" required>
-                    <label>Sex:</label>
-                    <input type="text" name="sex" value="{{ demographics.sex if demographics.sex != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.sex == 'Not Found' else '' }}" required>
-                    <label>Race:</label>
-                    <input type="text" name="race" value="{{ demographics.race if demographics.race != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.race == 'Not Found' else '' }}" required>
+                    <div class="form-group">
+                        <label>Age:</label>
+                        <input type="text" name="age" value="{{ demographics.age if demographics.age != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.age == 'Not Found' else '' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sex:</label>
+                        <input type="text" name="sex" value="{{ demographics.sex if demographics.sex != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.sex == 'Not Found' else '' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Race:</label>
+                        <input type="text" name="race" value="{{ demographics.race if demographics.race != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.race == 'Not Found' else '' }}" required>
+                    </div>
                 {% endif %}
 
                 {% if observations %}
                     {% for obs_name, obs_value in observations.items() %}
-                        <label>{{ obs_name }}:</label>
-                        <input type="text" name="{{ obs_name | replace(' ', '_') | lower }}" value="{{ obs_value if obs_value != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if obs_value == 'Not Found' else '' }}" required>
+                        <div class="form-group">
+                            <label>{{ obs_name }}:</label>
+                            <input type="text" name="{{ obs_name | replace(' ', '_') | lower }}" value="{{ obs_value if obs_value != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if obs_value == 'Not Found' else '' }}" required>
+                        </div>
                     {% endfor %}
                 {% endif %}
 
@@ -129,9 +143,15 @@
                     </div>
                 </div>
 
-                <input type="submit" value="Submit Additional Info">
+                <input type="submit" value="Calculate ASCVD Risk">
             </form>
         </div>
+
+        {% if ascvd_risk is not none %}
+        <div class="ascvd-risk">
+            ASCVD Risk Score: {{ ascvd_risk }}%
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

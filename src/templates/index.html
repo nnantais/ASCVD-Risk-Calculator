@@ -81,7 +81,7 @@
             <form method="post" action="/calculate_risk" class="form-container">
                 {% if demographics %}
                     <div class="form-group">
-                        <label>Age:</label>
+                        <label>Age (20-79):</label>
                         <input type="text" name="age" value="{{ demographics.age if demographics.age != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.age == 'Not Found' else '' }}" required>
                     </div>
                     <div class="form-group">
@@ -97,7 +97,21 @@
                 {% if observations %}
                     {% for obs_name, obs_value in observations.items() %}
                         <div class="form-group">
-                            <label>{{ obs_name }}:</label>
+                            <label>
+                                {% if obs_name == 'Systolic Blood Pressure' %}
+                                    Systolic Blood Pressure (90-200 mm Hg):
+                                {% elif obs_name == 'Diastolic Blood Pressure' %}
+                                    Diastolic Blood Pressure (60-130 mm Hg):
+                                {% elif obs_name == 'Total Cholesterol' %}
+                                    Total Cholesterol (130 - 320 mg/dL):
+                                {% elif obs_name == 'HDL Cholesterol' %}
+                                    HDL Cholesterol (20 - 100 mg/dL):
+                                {% elif obs_name == 'LDL Cholesterol' %}
+                                    LDL Cholesterol (30-300 mg/dL):
+                                {% else %}
+                                    {{ obs_name }}:
+                                {% endif %}
+                            </label>
                             <input type="text" name="{{ obs_name | replace(' ', '_') | lower }}" value="{{ obs_value if obs_value != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if obs_value == 'Not Found' else '' }}" required>
                         </div>
                     {% endfor %}

@@ -47,9 +47,16 @@ def get_patient_demographics(patient_id, credentials):
         birth_date = patient['birthDate']
         age = calculate_age(birth_date)
         sex = patient['gender']
-        race = next((extension['valueCodeableConcept']['text']
-                     for extension in patient.get('extension', [])
-                     if extension['url'] == 'http://hl7.org/fhir/StructureDefinition/us-core-race'), 'Not Found')
+        race = 'Not Found'
+        
+        # Extract race from extensions
+        for extension in patient.get('extension', []):
+            if extension['url'] == 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race':
+                for ext in extension.get('extension', []):
+                    if ext['url'] == 'ombCategory':
+                        race = ext['valueCoding']['display']
+                        break
+
         return {'age': age, 'sex': sex, 'race': race}
     else:
         return {'age': 'Not Found', 'sex': 'Not Found', 'race': 'Not Found'}

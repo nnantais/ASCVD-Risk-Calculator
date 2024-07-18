@@ -3,168 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <title>ASCVD Risk Calculator</title>
-    <script>
-        function clearPreviousResults() {
-            document.getElementById('results').innerHTML = '';
-        }
-    </script>
     <style>
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .title {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-        }
-        .form-container, .results-container, .input-fields-container {
+            max-width: 800px;
             width: 100%;
-            max-width: 600px;
         }
-        .form-container {
+        .grid-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            margin-bottom: 20px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
+        .grid-item label {
             margin-bottom: 5px;
-            font-weight: bold;
         }
-        .form-group input[type="text"] {
-            width: 100%;
-            padding: 5px;
-            box-sizing: border-box;
+        .grid-item input, .grid-item select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
-        .form-group .options {
+        .buttons {
             display: flex;
-            gap: 10px;
-        }
-        .results-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .results-container label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .results-container input {
-            width: 100%;
-            padding: 5px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        .ascvd-risk {
+            justify-content: center;
             margin-top: 20px;
-            font-size: 1.2em;
+        }
+        .buttons input {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .buttons input:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>ASCVD Risk Calculator</h1>
-
-        <!-- Form for fetching patient data using patient ID -->
-        <form method="post" action="/fetch_patient_data" onsubmit="clearPreviousResults()" class="form-container">
-            <div class="form-group">
-                <label for="patient_id">Enter a Patient ID:</label>
+        <div class="title">ASCVD Risk Calculator</div>
+        
+        <form method="post" action="/fetch_patient_data" class="grid">
+            <div class="grid-item" style="grid-column: span 3;">
+                <label for="patient_id">Enter Patient ID:</label>
                 <input type="text" name="patient_id" id="patient_id" required>
             </div>
-            <input type="submit" value="Fetch Patient Data">
+            <div class="buttons" style="grid-column: span 3;">
+                <input type="submit" value="Fetch Patient Data">
+            </div>
         </form>
 
-        <div id="results" class="results-container">
-            <form method="post" action="/calculate_risk" class="form-container">
-                {% if demographics %}
-                    <div class="form-group">
-                        <label>Age (20-79):</label>
-                        <input type="text" name="age" value="{{ demographics.age if demographics.age != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.age == 'Not Found' else '' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Sex:</label>
-                        <input type="text" name="sex" value="{{ demographics.sex if demographics.sex != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.sex == 'Not Found' else '' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Race:</label>
-                        <input type="text" name="race" value="{{ demographics.race if demographics.race != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if demographics.race == 'Not Found' else '' }}" required>
-                    </div>
-                {% endif %}
-
-                {% if observations %}
-                    {% for obs_name, obs_value in observations.items() %}
-                        <div class="form-group">
-                            <label>
-                                {% if obs_name == 'Systolic Blood Pressure' %}
-                                    Systolic Blood Pressure (90-200 mm Hg):
-                                {% elif obs_name == 'Diastolic Blood Pressure' %}
-                                    Diastolic Blood Pressure (60-130 mm Hg):
-                                {% elif obs_name == 'Total Cholesterol' %}
-                                    Total Cholesterol (130 - 320 mg/dL):
-                                {% elif obs_name == 'HDL Cholesterol' %}
-                                    HDL Cholesterol (20 - 100 mg/dL):
-                                {% elif obs_name == 'LDL Cholesterol' %}
-                                    LDL Cholesterol (30-300 mg/dL):
-                                {% else %}
-                                    {{ obs_name }}:
-                                {% endif %}
-                            </label>
-                            <input type="text" name="{{ obs_name | replace(' ', '_') | lower }}" value="{{ obs_value if obs_value != 'Not Found' else '' }}" placeholder="{{ 'Not Found' if obs_value == 'Not Found' else '' }}" required>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <div class="form-group">
-                    <label>History of Diabetes?</label>
-                    <div class="options">
-                        <label><input type="radio" name="diabetes" value="yes" required> Yes</label>
-                        <label><input type="radio" name="diabetes" value="no" required> No</label>
-                    </div>
+        {% if demographics %}
+            <form method="post" action="/calculate_risk" class="grid">
+                <input type="hidden" name="patient_id" value="{{ patient_id }}">
+                <div class="grid-item">
+                    <label for="age">Current Age:</label>
+                    <input type="text" name="age" id="age" value="{{ demographics.age }}" required>
                 </div>
-
-                <div class="form-group">
-                    <label>Smoker?</label>
-                    <div class="options">
-                        <label><input type="radio" name="smoker" value="yes" required> Yes</label>
-                        <label><input type="radio" name="smoker" value="no" required> No</label>
-                    </div>
+                <div class="grid-item">
+                    <label for="sex">Sex:</label>
+                    <input type="text" name="sex" id="sex" value="{{ demographics.sex }}" required>
                 </div>
-
-                <div class="form-group">
-                    <label>On hypertension treatment?</label>
-                    <div class="options">
-                        <label><input type="radio" name="hypertension" value="yes" required> Yes</label>
-                        <label><input type="radio" name="hypertension" value="no" required> No</label>
-                    </div>
+                <div class="grid-item">
+                    <label for="race">Race:</label>
+                    <input type="text" name="race" id="race" value="{{ demographics.race }}" required>
                 </div>
-
-                <div class="form-group">
-                    <label>On a statin?</label>
-                    <div class="options">
-                        <label><input type="radio" name="statin" value="yes" required> Yes</label>
-                        <label><input type="radio" name="statin" value="no" required> No</label>
-                    </div>
+                <div class="grid-item">
+                    <label for="total_cholesterol">Total Cholesterol (130 - 320 mg/dL):</label>
+                    <input type="text" name="total_cholesterol" id="total_cholesterol" value="{{ observations['Total Cholesterol'] }}" required>
                 </div>
-
-                <div class="form-group">
-                    <label>On Aspirin Therapy?</label>
-                    <div class="options">
-                        <label><input type="radio" name="aspirin" value="yes" required> Yes</label>
-                        <label><input type="radio" name="aspirin" value="no" required> No</label>
-                    </div>
+                <div class="grid-item">
+                    <label for="hdl_cholesterol">HDL Cholesterol (20 - 100 mg/dL):</label>
+                    <input type="text" name="hdl_cholesterol" id="hdl_cholesterol" value="{{ observations['HDL Cholesterol'] }}" required>
                 </div>
-
-                <input type="submit" value="Calculate ASCVD Risk">
+                <div class="grid-item">
+                    <label for="systolic_blood_pressure">Systolic Blood Pressure (90-200 mm Hg):</label>
+                    <input type="text" name="systolic_blood_pressure" id="systolic_blood_pressure" value="{{ observations['Systolic Blood Pressure'] }}" required>
+                </div>
+                <div class="grid-item">
+                    <label for="diastolic_blood_pressure">Diastolic Blood Pressure (60-130 mm Hg):</label>
+                    <input type="text" name="diastolic_blood_pressure" id="diastolic_blood_pressure" value="{{ observations['Diastolic Blood Pressure'] }}" required>
+                </div>
+                <div class="grid-item">
+                    <label for="diabetes">History of Diabetes?</label>
+                    <select name="diabetes" id="diabetes" required>
+                        <option value="no" {% if diabetes == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if diabetes == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="grid-item">
+                    <label for="smoker">Smoker?</label>
+                    <select name="smoker" id="smoker" required>
+                        <option value="no" {% if smoker == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if smoker == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="grid-item">
+                    <label for="hypertension">On Hypertension Treatment?</label>
+                    <select name="hypertension" id="hypertension" required>
+                        <option value="no" {% if hypertension == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if hypertension == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="buttons" style="grid-column: span 3;">
+                    <input type="submit" value="Calculate Risk">
+                </div>
             </form>
-        </div>
+        {% endif %}
 
         {% if ascvd_risk is not none %}
-        <div class="ascvd-risk">
-            ASCVD Risk Score: {{ ascvd_risk }}%
-        </div>
+            <div class="result">
+                ASCVD Risk: {{ ascvd_risk }}%
+            </div>
         {% endif %}
     </div>
 </body>

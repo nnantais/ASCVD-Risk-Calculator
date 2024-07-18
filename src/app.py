@@ -1,13 +1,18 @@
 import os
+from dotenv import load_dotenv
 
-  
+# Load environment variables from .env file
+load_dotenv()
+
+# Set environment variables for R from .env
+os.environ['R_HOME'] = os.getenv('R_HOME')
+os.environ['R_USER'] = os.getenv('R_USER')
 
 import requests
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector, StrVector
 from flask import Flask, request, render_template, redirect, url_for
-from dotenv import load_dotenv
 from datetime import datetime
 
 app = Flask(__name__)
@@ -15,16 +20,9 @@ app = Flask(__name__)
 # Import the PooledCohort package in R
 pooled_cohort = importr("PooledCohort")
 
-# Load environment variables
-load_dotenv()
-
-FHIR_SERVER_BASE_URL = os.getenv("FHIR_SERVER_BASE_URL")
+FHIR_SERVER_BASE_URL = "http://pwebmedcit.services.brown.edu:9091/fhir"
 username = os.getenv("FHIR_USERNAME")
 password = os.getenv("FHIR_PASSWORD")
-
-# Set environment variables for R from .env
-os.environ['R_HOME'] = os.getenv('R_HOME')
-os.environ['R_USER'] = os.getenv('R_USER') 
 
 observation_codes = {
     "Systolic Blood Pressure": "8480-6",
@@ -131,9 +129,9 @@ def calculate_risk():
     total_cholesterol_r = FloatVector([total_cholesterol])
     hdl_cholesterol_r = FloatVector([hdl_cholesterol])
     systolic_bp_r = FloatVector([systolic_bp])
-    diabetes_r = StrVector(['yes' if diabetes == 'yes' else 'no'])
-    smoker_r = StrVector(['yes' if smoker == 'yes' else 'no'])
-    hypertension_r = StrVector(['yes' if hypertension == 'yes' else 'no'])
+    diabetes_r = StrVector([diabetes])
+    smoker_r = StrVector([smoker])
+    hypertension_r = StrVector([hypertension])
 
     # Call the ASCVD risk calculation function from PooledCohort
     ascvd_risk_r = pooled_cohort.predict_10yr_ascvd_risk(
@@ -148,8 +146,8 @@ def calculate_risk():
         diabetes=diabetes_r
     )
 
-    # Convert the result back to Python
-    ascvd_risk = list(ascvd_risk_r)[0]*100
+    # Convert the result back to Python and multiply by 100 to get percentage
+    ascvd_risk_percentage = list(ascvd_risk_r)[0] * 100
 
     demographics = {'age': age, 'sex': sex, 'race': race}
     observations = {
@@ -159,7 +157,16 @@ def calculate_risk():
         'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found'
     }
 
-    return render_template('index.html', ascvd_risk=ascvd_risk, demographics=demographics, observations=observations, patient_id=patient_id)
+    return render_template(
+        'index.html',
+        ascvd_risk=ascvd_risk_percentage,
+        demographics=demographics,
+        observations=observations,
+        patient_id=patient_id,
+        diabetes=diabetes,
+        smoker=smoker,
+        hypertension=hypertension
+    )
 
 if __name__ == '__main__':
     port_str = os.getenv('FHIR_PORT', '5000')

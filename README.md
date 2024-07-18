@@ -1,6 +1,62 @@
-# Under development
+# ASCVD Risk Calculator
 
-# This is a repo which has code to ASCVD risk calculator web app
+This ASCVD Risk calculator is used to study the risk prediction for cardiovascular disease (CVD).
 
+This calculator uses the Pooled Cohort risk prediction equations to predict 10-year atherosclerotic cardiovascular disease risk. More information about the predictor equation can be found here https://github.com/bcjaeger/PooledCohort/tree/master
+
+# Steps to run the ASCVD Risk Calculator
+
+## 1. Check if R and python are installed where you are running this app.
+
+```
+python3 --version
+R --version
+```
+
+## 2. Before running the app
+
+Change these parameters in the .env file. Use the port number assigned to you to run the app for FHIR_PORT.
+
+```
+FHIR_SERVER_BASE_URL= http://pwebmedcit.services.brown.edu:????/fhir
+FHIR_USERNAME = ???
+FHIR_PASSWORD = ???
+FHIR_PORT=????
+R_HOME=???
+R_USER=????
+```
+
+Start R and run the R.home() and .libPaths() commands to get the directory names and update them in .env file
+
+```
+> R.home()
+[1] "/Library/Frameworks/R.framework/Resources"
+> .libPaths()
+[1] "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library"
+```
+
+## 3. Clone the repo
+```
+git clone https://github.com/bcbi/ASCVD-Risk-Calculator.git
+
+cd ASCVD-Risk-Calculator
+```
+## 4. Run the setup script
+```
+./setup_environment.sh
+```
+
+## 5. Activate the virtual environment
+```
+source venv/bin/activate
+```
+
+## 6. Run the flask app
+```
+python src/app.py
+```
+
+This will start the app on port "FHIR_PORT". You can open your preferred browser and see the app running on `http://localhost:FHIR_PORT` replace the FHIR_PORT with the actual port number assigned to you. 
+The exact URL to the app can also be found on the terminal output after running the app.
 
 

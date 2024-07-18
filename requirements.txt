@@ -13,3 +13,4 @@ requests==2.31.0
 urllib3==2.0.5
 Werkzeug==2.3.7
 zipp==3.17.0
+rpy2==3.4.5

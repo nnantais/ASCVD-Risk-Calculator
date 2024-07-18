@@ -1,17 +1,30 @@
-import requests
 import os
+
+  
+
+import requests
+import rpy2.robjects as ro
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector, StrVector
 from flask import Flask, request, render_template, redirect, url_for
 from dotenv import load_dotenv
 from datetime import datetime
 
 app = Flask(__name__)
 
-FHIR_SERVER_BASE_URL = "http://pwebmedcit.services.brown.edu:9091/fhir"
+# Import the PooledCohort package in R
+pooled_cohort = importr("PooledCohort")
 
+# Load environment variables
 load_dotenv()
 
+FHIR_SERVER_BASE_URL = os.getenv("FHIR_SERVER_BASE_URL")
 username = os.getenv("FHIR_USERNAME")
 password = os.getenv("FHIR_PASSWORD")
+
+# Set environment variables for R from .env
+os.environ['R_HOME'] = os.getenv('R_HOME')
+os.environ['R_USER'] = os.getenv('R_USER') 
 
 observation_codes = {
     "Systolic Blood Pressure": "8480-6",
@@ -19,6 +32,14 @@ observation_codes = {
     "Total Cholesterol": "2093-3",
     "HDL Cholesterol": "2085-9",
     "LDL Cholesterol": "18262-6"
+}
+
+race_mapping = {
+    "American Indian or Alaska Native": "white",
+    "Asian": "white",
+    "Black or African American": "black",
+    "Native Hawaiian or Other Pacific Islander": "white",
+    "White": "white"
 }
 
 def get_observation_value(entry):
@@ -48,15 +69,12 @@ def get_patient_demographics(patient_id, credentials):
         age = calculate_age(birth_date)
         sex = patient['gender']
         race = 'Not Found'
-        
-        # Extract race from extensions
         for extension in patient.get('extension', []):
             if extension['url'] == 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race':
                 for ext in extension.get('extension', []):
                     if ext['url'] == 'ombCategory':
-                        race = ext['valueCoding']['display']
+                        race = race_mapping.get(ext['valueCoding']['display'], 'white')
                         break
-
         return {'age': age, 'sex': sex, 'race': race}
     else:
         return {'age': 'Not Found', 'sex': 'Not Found', 'race': 'Not Found'}
@@ -75,26 +93,6 @@ def get_patient_observations(patient_id, credentials):
         else:
             observations[obs_name] = 'Not Found'
     return observations, demographics
-
-def calculate_ascvd_risk(age, sex, race, total_cholesterol, hdl_cholesterol, systolic_bp, on_hypertension_treatment, diabetes, smoker):
-    # Simplified ASCVD risk calculation
-    # Note: This is a placeholder. Use a proper ASCVD risk calculator for accurate results.
-    risk_score = 0
-    if sex == 'male':
-        risk_score += 1
-    if race == 'African American':
-        risk_score += 1
-    risk_score += age / 10
-    risk_score += total_cholesterol / 50
-    risk_score -= hdl_cholesterol / 50
-    risk_score += systolic_bp / 20
-    if on_hypertension_treatment == 'yes':
-        risk_score += 1
-    if diabetes == 'yes':
-        risk_score += 1
-    if smoker == 'yes':
-        risk_score += 1
-    return round(risk_score, 2)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -124,21 +122,46 @@ def calculate_risk():
     smoker = request.form['smoker']
     hypertension = request.form['hypertension']
 
-    ascvd_risk = calculate_ascvd_risk(age, sex, race, total_cholesterol, hdl_cholesterol, systolic_bp, hypertension, diabetes, smoker)
+    # Convert sex and race to R compatible formats
+    sex_r = StrVector([sex])
+    race_r = StrVector([race_mapping.get(race, 'white')])
 
-    # Maintain the form values for observations and demographics
+    # Convert other inputs to R compatible formats
+    age_r = FloatVector([age])
+    total_cholesterol_r = FloatVector([total_cholesterol])
+    hdl_cholesterol_r = FloatVector([hdl_cholesterol])
+    systolic_bp_r = FloatVector([systolic_bp])
+    diabetes_r = StrVector(['yes' if diabetes == 'yes' else 'no'])
+    smoker_r = StrVector(['yes' if smoker == 'yes' else 'no'])
+    hypertension_r = StrVector(['yes' if hypertension == 'yes' else 'no'])
+
+    # Call the ASCVD risk calculation function from PooledCohort
+    ascvd_risk_r = pooled_cohort.predict_10yr_ascvd_risk(
+        sex=sex_r,
+        race=race_r,
+        age_years=age_r,
+        chol_total_mgdl=total_cholesterol_r,
+        chol_hdl_mgdl=hdl_cholesterol_r,
+        bp_sys_mmhg=systolic_bp_r,
+        bp_meds=hypertension_r,
+        smoke_current=smoker_r,
+        diabetes=diabetes_r
+    )
+
+    # Convert the result back to Python
+    ascvd_risk = list(ascvd_risk_r)[0]*100
+
     demographics = {'age': age, 'sex': sex, 'race': race}
     observations = {
         'Total Cholesterol': total_cholesterol,
         'HDL Cholesterol': hdl_cholesterol,
         'Systolic Blood Pressure': systolic_bp,
-        'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found',
-        'LDL Cholesterol': request.form['ldl_cholesterol'] if 'ldl_cholesterol' in request.form else 'Not Found'
+        'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found'
     }
 
     return render_template('index.html', ascvd_risk=ascvd_risk, demographics=demographics, observations=observations, patient_id=patient_id)
 
 if __name__ == '__main__':
-    port_str = os.environ['FHIR_PORT']
+    port_str = os.getenv('FHIR_PORT', '5000')
     port_int = int(port_str)
     app.run(debug=True, port=port_int)

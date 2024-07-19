@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Set environment variables for R from .env
-os.environ['R_HOME'] = "/Library/Frameworks/R.framework/Resources"
-os.environ['R_USER'] = "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library"
+# Set directory paths for R
+os.environ['R_HOME'] = "??????"
+os.environ['R_USER'] = "??????"
 
 import requests
 import rpy2.robjects as ro

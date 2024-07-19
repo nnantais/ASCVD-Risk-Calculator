@@ -37,9 +37,9 @@ Start R and run the R.home() and .libPaths() commands to get the directory names
 Update the above paths in the app.py file 
 
 ```
-# Set environment variables for R from .env
-os.environ['R_HOME'] = "/Library/Frameworks/R.framework/Resources"
-os.environ['R_USER'] = "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library"
+# Set environment variables for R in app.py in lines 8 and 9
+os.environ['R_HOME'] = "????"
+os.environ['R_USER'] = "????"
 ```
 
 ## 3. Clone the repo

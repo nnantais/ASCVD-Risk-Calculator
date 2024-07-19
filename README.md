@@ -25,7 +25,7 @@ FHIR_PORT=????
 
 ```
 
-Start R and run the R.home() and .libPaths() commands to get the directory names and update them in .env file
+Start R and run the R.home() and .libPaths() commands to get the directory names
 
 ```
 > R.home()
@@ -34,13 +34,6 @@ Start R and run the R.home() and .libPaths() commands to get the directory names
 [1] "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library"
 ```
 
-Update the above paths in the app.py file 
-
-```
-# Set environment variables for R in app.py in lines 8 and 9
-os.environ['R_HOME'] = "????"
-os.environ['R_USER'] = "????"
-```
 
 ## 3. Clone the repo
 ```
@@ -48,17 +41,24 @@ git clone https://github.com/bcbi/ASCVD-Risk-Calculator.git
 
 cd ASCVD-Risk-Calculator
 ```
-## 4. Run the setup script
+
+## 4. Update the above R dirceory paths in the app.py file in the ASCVD-Risk-Calculator directory in line 8 and 9
+
+```
+os.environ['R_HOME'] = "????"
+os.environ['R_USER'] = "????"
+```
+## 5. Run the setup script
 ```
 ./setup_environment.sh
 ```
 
-## 5. Activate the virtual environment
+## 6. Activate the virtual environment
 ```
 source venv/bin/activate
 ```
 
-## 6. Run the flask app
+## 7. Run the flask app
 ```
 python src/app.py
 ```

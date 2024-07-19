@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set environment variables for R from .env
-os.environ['R_HOME'] = os.getenv('R_HOME')
-os.environ['R_USER'] = os.getenv('R_USER')
+os.environ['R_HOME'] = "/Library/Frameworks/R.framework/Resources"
+os.environ['R_USER'] = "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library"
 
 import requests
 import rpy2.robjects as ro
@@ -20,7 +20,7 @@ app = Flask(__name__)
 # Import the PooledCohort package in R
 pooled_cohort = importr("PooledCohort")
 
-FHIR_SERVER_BASE_URL = "http://pwebmedcit.services.brown.edu:9091/fhir"
+FHIR_SERVER_BASE_URL = os.getenv("FHIR_SERVER_BASE_URL")
 username = os.getenv("FHIR_USERNAME")
 password = os.getenv("FHIR_PASSWORD")
 

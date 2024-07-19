@@ -168,7 +168,8 @@ def calculate_risk():
         hypertension=hypertension
     )
 
+
 if __name__ == '__main__':
-    port_str = os.getenv('FHIR_PORT', '5000')
+    port_str = os.environ['FHIR_PORT']
     port_int = int(port_str)
     app.run(debug=True, port=port_int)

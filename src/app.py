@@ -1,21 +1,21 @@
 import os
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Set directory paths for R
-os.environ['R_HOME'] = "??????"
-os.environ['R_USER'] = "??????"
-
 import requests
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector, StrVector
 from flask import Flask, request, render_template, redirect, url_for
 from datetime import datetime
+import pandas as pd
 
 app = Flask(__name__)
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set directory paths for R
+os.environ['R_HOME'] = "?????"
+os.environ['R_USER'] = "?????"
 
 # Import the PooledCohort package in R
 pooled_cohort = importr("PooledCohort")
@@ -23,6 +23,11 @@ pooled_cohort = importr("PooledCohort")
 FHIR_SERVER_BASE_URL = os.getenv("FHIR_SERVER_BASE_URL")
 username = os.getenv("FHIR_USERNAME")
 password = os.getenv("FHIR_PASSWORD")
+
+# Load CSV data
+diabetes_codes = pd.read_csv('diabetes.csv')['target_concept_code'].tolist()
+smoker_codes = pd.read_csv('smoker.csv')['target_concept_code'].tolist()
+hypertension_codes = pd.read_csv('hypertension.csv')['target_concept_code'].tolist()
 
 observation_codes = {
     "Systolic Blood Pressure": "8480-6",
@@ -77,9 +82,20 @@ def get_patient_demographics(patient_id, credentials):
     else:
         return {'age': 'Not Found', 'sex': 'Not Found', 'race': 'Not Found'}
 
+def check_code_presence(patient_id, code_list, credentials):
+    for code in code_list:
+        response = requests.get(FHIR_SERVER_BASE_URL + f"/Condition?patient={patient_id}&code={code}", auth=credentials)
+        if response.status_code == 200:
+            data = response.json()
+            if 'entry' in data and data['entry']:
+                return 'yes'
+    return 'no'
+
 def get_patient_observations(patient_id, credentials):
     observations = {}
     demographics = get_patient_demographics(patient_id, credentials)
+    
+    # Fetch observations from FHIR
     for obs_name, code in observation_codes.items():
         response = requests.get(FHIR_SERVER_BASE_URL + f"/Observation?patient={patient_id}&code={code}", auth=credentials)
         if response.status_code == 200:
@@ -90,6 +106,12 @@ def get_patient_observations(patient_id, credentials):
                 observations[obs_name] = 'Not Found'
         else:
             observations[obs_name] = 'Not Found'
+
+    # Check presence of specific conditions based on codes
+    observations['Diabetes'] = check_code_presence(patient_id, diabetes_codes, credentials)
+    observations['Smoker'] = check_code_presence(patient_id, smoker_codes, credentials)
+    observations['Hypertension'] = check_code_presence(patient_id, hypertension_codes, credentials)
+    
     return observations, demographics
 
 @app.route('/', methods=['GET', 'POST'])
@@ -154,7 +176,10 @@ def calculate_risk():
         'Total Cholesterol': total_cholesterol,
         'HDL Cholesterol': hdl_cholesterol,
         'Systolic Blood Pressure': systolic_bp,
-        'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found'
+        'Diastolic Blood Pressure': request.form['diastolic_blood_pressure'] if 'diastolic_blood_pressure' in request.form else 'Not Found',
+        'Diabetes': diabetes,
+        'Smoker': smoker,
+        'Hypertension': hypertension
     }
 
     return render_template(
@@ -167,7 +192,6 @@ def calculate_risk():
         smoker=smoker,
         hypertension=hypertension
     )
-
 
 if __name__ == '__main__':
     port_str = os.environ['FHIR_PORT']

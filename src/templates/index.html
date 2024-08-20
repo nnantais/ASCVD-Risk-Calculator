@@ -106,24 +106,15 @@
                 </div>
                 <div class="grid-item">
                     <label for="diabetes">History of Diabetes?</label>
-                    <select name="diabetes" id="diabetes" required>
-                        <option value="no" {% if diabetes == 'no' %}selected{% endif %}>No</option>
-                        <option value="yes" {% if diabetes == 'yes' %}selected{% endif %}>Yes</option>
-                    </select>
+                    <input type="text" name="diabetes" id="diabetes" value="{{ observations['Diabetes'] }}" readonly>
                 </div>
                 <div class="grid-item">
                     <label for="smoker">Smoker?</label>
-                    <select name="smoker" id="smoker" required>
-                        <option value="no" {% if smoker == 'no' %}selected{% endif %}>No</option>
-                        <option value="yes" {% if smoker == 'yes' %}selected{% endif %}>Yes</option>
-                    </select>
+                    <input type="text" name="smoker" id="smoker" value="{{ observations['Smoker'] }}" readonly>
                 </div>
                 <div class="grid-item">
                     <label for="hypertension">On Hypertension Treatment?</label>
-                    <select name="hypertension" id="hypertension" required>
-                        <option value="no" {% if hypertension == 'no' %}selected{% endif %}>No</option>
-                        <option value="yes" {% if hypertension == 'yes' %}selected{% endif %}>Yes</option>
-                    </select>
+                    <input type="text" name="hypertension" id="hypertension" value="{{ observations['Hypertension'] }}" readonly>
                 </div>
                 <div class="buttons" style="grid-column: span 3;">
                     <input type="submit" value="Calculate Risk">

@@ -15,7 +15,7 @@ load_dotenv()
 
 # Set directory paths for R
 os.environ['R_HOME'] = "/oscar/rt/9.2/software/0.20-generic/0.20.1/opt/spack/linux-rhel9-x86_64_v3/gcc-11.3.1/r-4.4.2-re5rjx36kzbvfrx7wgaozglvvskxxx5c/rlib/R"
-os.environ['R_USER'] = "/oscar/rt/9.2/software/0.20-generic/0.20.1/opt/spack/linux-rhel9-x86_64_v3/gcc-11.3.1/r-4.4.2-re5rjx36kzbvfrx7wgaozglvvskxxx5c/rlib/R/library"
+os.environ['R_USER'] = "/oscar/home/nnantais/R/x86_64-pc-linux-gnu-library/4.4"
 
 
 # Import the PooledCohort package in R
